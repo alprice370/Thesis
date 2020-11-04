@@ -66,9 +66,7 @@ with(basics, t.test(true_age~sex))  ###p-value = 0.000228
 ##K-S test
 ks.test(basics$len[isotope$location_type=="N"],basics$len[isotope$location_type=="A"])
 
-
 ##### INTRO  QUESTIONS -UMES & NOAA COMPARED######
-##Intro for comparisons involving NOAA Data
 
 ###WRANGLING###
 basics.n <- subset(master_df,select = -c(2:3,6,12:13,37:42))
@@ -96,7 +94,7 @@ basics.n <- basics.n[basics.n$year!="2017",]
 ###NOAA data ends in 2016; I only had 10 unreliable samples in 2017
 basics.n <- select(basics.n,-(sex))
 basics.n <- rename(basics.n,c("sex.x" = "sex"))
-#basics.n <- basics.n[basics.n$sex=="0"|basics.n$sex=="1"|basics.n$sex=="2"|basics.n$sex=="3",] 
+###Define size category
 basics.n$sizecat[basics.n$len<=25] <- "S"
 basics.n$sizecat[basics.n$len>25] <- "M"
 basics.n$sizecat[basics.n$len>50] <- "L"
@@ -116,5 +114,3 @@ basics.n <-basics.n%>%mutate(Lati=trunc(beglat/100) + ((beglat-(trunc(beglat/100
   mutate(Long=Long*-1)
 table(basics.n$season)
 table(basics.n$geoarea)
-
-
