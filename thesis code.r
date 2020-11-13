@@ -99,10 +99,10 @@ basics.n$sizecat[basics.n$len<=25] <- "S"
 basics.n$sizecat[basics.n$len>25] <- "M"
 basics.n$sizecat[basics.n$len>50] <- "L"
 
-##Location Type
+## Define Location Type
 basics.n$location_type<- ifelse(basics.n$location=="NB_ONE", "N",
                                 ifelse(basics.n$location=="NB_TWO","N","A"))
-##True age
+##True age - Likely won't need this.  essentailly retroages fish.
 basics.n$true_age<- ((basics.n$age)+((basics.n$mon-4)/12))
 basics.n$true_age <- round(basics.n$true_age, digits = 4)
 
@@ -114,3 +114,37 @@ basics.n <-basics.n%>%mutate(Lati=trunc(beglat/100) + ((beglat-(trunc(beglat/100
   mutate(Long=Long*-1)
 table(basics.n$season)
 table(basics.n$geoarea)
+
+###Figure1 -proportion of fish by source, and sex  Also number caught by source.
+plot1a <- qplot(x=pdlen,y=..count../sum(..count..), data =basics.n[basics.n$source=="ANDRE",],
+                geom = "histogram", binwidth = 0.5, fill=sex)+
+  labs(x="Total Length (cm)", y="Proportion", col="Sex")+ggtitle("Length Frequencies of Black Sea Bass", subtitle = "A (n=407)")+
+  theme(plot.title = element_text(hjust = 0.5))+xlim(0,60)
+plot1a <- plot1a+scale_fill_manual(values=c("tomato1","dodgerblue4","aquamarine4" ,"grey48"), 
+                                   name="Sex",labels=c("Female", "Male", "Trans", "Unknown"))
+
+plot1b <- qplot(x=pdlen,y=..count../sum(..count..), data =basics.n[basics.n$source=="NOAA",],
+                geom = "histogram", binwidth = 0.5, fill=sex)+
+  labs(x="Total Length (cm)", y="Proportion", col="Sex")+ggtitle(NULL, subtitle = "B (n=1304)")+
+  theme(plot.title = element_text(hjust = 0.5))+ylim(0,.100)
+plot1b <- plot1b+scale_fill_manual(values=c("tomato1","dodgerblue4","aquamarine4" ,"grey48"), 
+                                   name="Sex",labels=c("Female", "Male", "Trans", "Unknown"))
+
+fig2 <- grid.arrange(plot1a, plot1b)
+
+#####STATISTICS####
+###TEST: Is age different at habiatat type?##
+##locatoin and age
+with(basics.n, t.test((true_age[location_type=="N"]), (true_age[location_type=="A"]))) ##p=0.172 - they don't pick location with age 
+with(basics.n, t.test((age[location_type=="N"]), (age[location_type=="A"]))) ##p=0.1163 - they don't pick locaiotn with age 
+
+with(basics.n, wilcox.test((true_age[location_type=="N"]), (true_age[location_type=="A"]))) ##p=0.1647 - they don't pick locaiotn with age 
+##locaiton and sizecat
+with(basics.n, t.test(len~location_type)) ##p-value = 2.853e-06
+#sex and age
+with(basics.n, t.test((true_age[sex=="Male"]), (true_age[sex=="Female"])))  ##p=0.0015 - they (can) change sex as they age
+#length and sex
+with(basics.n, t.test((len[sex=="Male"]), (len[sex=="Female"])))  ##1.355e-10 - they get bigger as they age
+##Against NOAA
+with(basics.n, t.test((pdlen[source=="NOAA"]), (pdlen[source=="ANDRE"])))
+table(basics.n$source)
