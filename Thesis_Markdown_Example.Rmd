@@ -123,7 +123,7 @@ plot1b <- plot1b+scale_fill_manual(values=c("tomato1","dodgerblue4","aquamarine4
 fig2 <- grid.arrange(plot1a, plot1b)
 ```
 
-
+This will show a map of where samples were caught
 ```{r sample_map, include=TRUE, ECHO=FALSE, WARNING=FALSE}
 setwd("~/Desktop/MasterR")
 mapsites<- read.csv("site_coordinates.csv")
