@@ -106,4 +106,21 @@ summarySE(basics.n, measurevar="pdlen", groupvars=c("source", "sex"), na.rm=TRUE
 
 ```
 
+This plot shows sample origin and quantity, and sex proportion
+```{r figure2, include=TRUE,warning=FALSE, echo=FALSE}
+plot1a <- qplot(x=pdlen,y=..count../sum(..count..), data =basics.n[basics.n$source=="ANDRE",],
+                geom = "histogram", binwidth = 0.5, fill=sex)+
+  labs(x="Total Length (cm)", y="Proportion", col="Sex")+ggtitle("Length Frequencies of Black Sea Bass", subtitle = "A (n=407)")+
+  theme(plot.title = element_text(hjust = 0.5))+xlim(0,60)
+plot1a <- plot1a+scale_fill_manual(values=c("tomato1","dodgerblue4","aquamarine4" ,"grey48"), 
+                                   name="Sex",labels=c("Female", "Male", "Trans", "Unknown"))
 
+plot1b <- qplot(x=pdlen,y=..count../sum(..count..), data =basics.n[basics.n$source=="NOAA",],
+                geom = "histogram", binwidth = 0.5, fill=sex)+
+  labs(x="Total Length (cm)", y="Proportion", col="Sex")+ggtitle(NULL, subtitle = "B (n=1304)")+
+  theme(plot.title = element_text(hjust = 0.5))+ylim(0,.100)
+plot1b <- plot1b+scale_fill_manual(values=c("tomato1","dodgerblue4","aquamarine4" ,"grey48"), 
+                                   name="Sex",labels=c("Female", "Male", "Trans", "Unknown"))
+
+fig2 <- grid.arrange(plot1a, plot1b)
+```
