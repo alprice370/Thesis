@@ -97,6 +97,9 @@ table(basics.n$geoarea)
 ```
 This working document that serves as a walkthough of my graduate thesis.
 
+This study examines the trophic dynamics of 407 BSB sampled from natural and artificial reefs near Ocean City, MD, during 2016 and 2018 using hook-and-line angling.  Stomach content analyses indicate that crustaceans (primarily _Cancer borealis_ and _C. irroratus_) dominate diets of BSB at both natural and artificial reef types by proportion and by frequency of occurrence. Analysis of stable isotope ratios (∂^12^C/∂^13^C and ∂^14^N/∂^15^N) from three tissue types (i.e., liver, muscle, and mucus) showed that reef type had a significant effect on stable isotope values in all tissues except for ∂^15^N in mucus.  Across tissues types, fish at artificial sites showed slightly higher ∂^13^C values, indicative of littoral feeding. Different tissues vary in temporal integration, but differences in stable isotopes could not be attributed to definitive, consistent prey items. No significant differences in length, age, or sex ratios existed between reef types, indicating that the sorting of these characters was not the source of differences in stable isotopes. Gut content analysis shows that natural and artificial reefs are ecologically equivalent for BSB caught near Ocean City, MD, however, differences in stable isotopes suggests this is a more sensitive method that should be investigated further.
+
+
 Here's a summary of the mean sizes of fish that were sampled
 
 ```{r summary of sizes, include=TRUE,warning=FALSE, echo=FALSE}
@@ -104,7 +107,7 @@ summarySE(basics.n, measurevar="pdlen", groupvars=c("source", "sex"), na.rm=TRUE
 
 ```
 
-This plot shows sample origin and quantity, and sex proportion
+This plot shows sample origin and quantity, and sex proportion.  This plot shows that females were most abundant, while males grew to an overall larger size.
 ```{r figure2, include=TRUE,warning=FALSE, echo=FALSE}
 plot1a <- qplot(x=pdlen,y=..count../sum(..count..), data =basics.n[basics.n$source=="ANDRE",],
                 geom = "histogram", binwidth = 0.5, fill=sex)+
@@ -123,8 +126,8 @@ plot1b <- plot1b+scale_fill_manual(values=c("tomato1","dodgerblue4","aquamarine4
 fig2 <- grid.arrange(plot1a, plot1b)
 ```
 
-This will show a map of where samples were caught
-```{r sample_map, include=TRUE, ECHO=FALSE, WARNING=FALSE}
+This will show a map of where samples were caught.  Samples were caught off the coast of MD, USA at natural and artifical sites.
+```{r figure1, include=TRUE, ECHO=FALSE, WARNING=FALSE}
 setwd("~/Desktop/MasterR")
 mapsites<- read.csv("site_coordinates.csv")
 mapsites$Long <- mapsites[, 2] + 0.006
