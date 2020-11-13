@@ -6,7 +6,6 @@ output: html_document
 ---
 
 ```{r setup, include=FALSE}
-#knitr::opts_chunk$set(echo = FALSE)
 ###Load Data###
 rm(list=ls(all=TRUE)) 
 setwd("~/Desktop/MasterR")
@@ -48,7 +47,6 @@ master_df <- select(master_df, -(contains(".y")))
 master_df <- rename(master_df, c("year.x" = "year", "location.x"="location", "month.x"="month"))
 
 ```
-
 
 ```{r wrangling2, include=FALSE}
 basics.n <- subset(master_df,select = -c(2:3,6,12:13,37:42))
@@ -123,4 +121,37 @@ plot1b <- plot1b+scale_fill_manual(values=c("tomato1","dodgerblue4","aquamarine4
                                    name="Sex",labels=c("Female", "Male", "Trans", "Unknown"))
 
 fig2 <- grid.arrange(plot1a, plot1b)
+```
+
+
+```{r sample_map, include=TRUE, ECHO=FALSE, WARNING=FALSE}
+setwd("~/Desktop/MasterR")
+mapsites<- read.csv("site_coordinates.csv")
+mapsites$Long <- mapsites[, 2] + 0.006
+mapsites$latlong <- paste(mapsites$Site, "|", mapsites$Year)
+
+library(sf) 
+library(rnaturalearth) 
+library(rnaturalearthdata) 
+library(ggplot2)
+
+
+mapsites<- read.csv("site_coordinates.csv") 
+mapsites$Long <- mapsites[, 2] + 0.2
+mapsites$Year <- as.factor(mapsites$Year) 
+world <- ne_countries(scale = "medium", returnclass = "sf") 
+ggplot(data = world)+
+  geom_sf()+
+  geom_point(data= mapsites,aes(x = Long, y = Lat, color= Site, shape= Year))+
+  labs(x="Long", y="Lat", colour="Site Type", shape="Year")+ 
+  scale_color_manual(values=c("cyan3", "coral1"), 
+                     labels=c("Nat","Art"))+ 
+  scale_shape_manual(values=c(6,17))+
+  coord_sf(xlim = c(-77, -73), ylim = c(37, 39), expand = FALSE)+ 
+  annotate(geom = "text", x = -74.5, y = 37.25, label = "Atlantic Ocean", fontface = "italic", color = "grey22", size = 6)+ 
+  xlab("Longitude") + 
+  ylab("Latitude") + 
+  ggtitle("Sampling Locations in 2016 and 2018")+
+  theme(plot.title = element_text(hjust = 0.5))
+
 ```

@@ -148,3 +148,4 @@ with(basics.n, t.test((len[sex=="Male"]), (len[sex=="Female"])))  ##1.355e-10 - 
 ##Against NOAA
 with(basics.n, t.test((pdlen[source=="NOAA"]), (pdlen[source=="ANDRE"])))
 table(basics.n$source)
+ 
