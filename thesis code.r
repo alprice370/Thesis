@@ -35,7 +35,7 @@ colnames(master_df)
 master_df <- select(master_df, -(contains(".y")))
 master_df <- rename(master_df, c("year.x" = "year", "location.x"="location", "month.x"="month"))
 
-##### INTRO  QUESTIONS - DATA COLLECTED BY ME @ UMES ######
+##### INTRO  QUESTIONS FOR DATA COLLECTED BY ME @ UMES ######
 
 ##WRANGLING
 basics <-(master_df[master_df$location!="",])
@@ -115,7 +115,7 @@ basics.n <-basics.n%>%mutate(Lati=trunc(beglat/100) + ((beglat-(trunc(beglat/100
 table(basics.n$season)
 table(basics.n$geoarea)
 
-###Figure1 -proportion of fish by source, and sex  Also number caught by source.
+###Figure2 -proportion of fish by source, and sex  Also number caught by source.
 plot1a <- qplot(x=pdlen,y=..count../sum(..count..), data =basics.n[basics.n$source=="ANDRE",],
                 geom = "histogram", binwidth = 0.5, fill=sex)+
   labs(x="Total Length (cm)", y="Proportion", col="Sex")+ggtitle("Length Frequencies of Black Sea Bass", subtitle = "A (n=407)")+
@@ -149,3 +149,111 @@ with(basics.n, t.test((len[sex=="Male"]), (len[sex=="Female"])))  ##1.355e-10 - 
 with(basics.n, t.test((pdlen[source=="NOAA"]), (pdlen[source=="ANDRE"])))
 table(basics.n$source)
  
+
+#############
+#### Size at age/ Age-length data #####
+###############
+
+##Age-length keys are later combined b/c stats didn't show
+##signif differneces b/w sexes and sizes @ sites
+
+#REGRESSION
+agelength <- basics
+agelength.lm <- lm(len~age, data=agelength) #regression of the data
+coefs <- coef(agelength.lm) #gives you the intercept and slope
+#for every unit increase in age, the model predicts a unit increase in total length
+
+summary(agelength.lm) #summary of the regression
+pt(coefs[[1]]/coefs[[2]], df=279, lower.tail=FALSE) #this was on an old regression hw, not sure if needed
+#based on the t-test (and regression summary), the regression slope is statistically different from zero (p-value <0.001)
+
+confint(agelength.lm)[2,] #confidence interval
+
+summary(agelength.lm)$r.square #how much variation in abundance the linear regression model explains
+#it explains 52% of the variation. Should consider other explanations for large variation in total length.
+
+#REGRESSION PLOT
+
+age_plot_1 <- ggplot(data=agelength, aes(age, len)) + 
+  geom_point(aes(color=sex)) +
+  stat_smooth(method = "lm", col = "black") + labs(x="Fish Age (years)",
+                                                   y="Total Fish Length (cm)",
+                                                   colour="Sex")+
+  scale_color_manual(values=c("tomato1","dodgerblue4","grey48"),labels=c("Female", "Male","Trans"))+
+  ggtitle("Age-Length Regression by Sex")+theme(plot.title = element_text(hjust = 0.5))
+
+age_plot_1
+# fig.name <- paste("Age-length.png")
+# dev.copy(png, fig.name, 500, 500);dev.off()
+
+#QQPLOT
+qqnorm(rstandard(agelength.lm))
+qqline(rstandard(agelength.lm))
+
+#RESIDUALS VS FITTED
+plot(agelength.lm,1)
+abline(h=c(-2,0,2),lty=3,col="grey60")
+
+#COOKs DISTANCE
+plot(agelength.lm,4)  ## all fish
+h=qf(0.5,2,50)
+
+##to remove the outliers
+rmoutlier <-agelength[-c(244, 521), ]
+rmoutlier.lm <- lm(len~age, data=rmoutlier)
+##Remove 244, 521 b/c they're outliers
+plot(rmoutlier.lm,4)
+
+
+#### Age-Length Key Construction  - Code from Derek Ogle ####
+##install.packages("FSAdata")
+library(magrittr)
+library(FSA)                                # for headtail(), alkPlot()
+library(FSAdata)                            # for SpotVA2 data
+library(dplyr)                              # for filter(), mutate()
+library(nnet)                               # for multinom()
+
+
+lenbrks <- seq(10,40,5)
+agelength <- mutate(agelength,lcat=lencat((len), breaks = lenbrks)) # nearest 5 cm
+headtail(agelength)
+
+( raw <- xtabs(~lcat+age,data=agelength) )
+( ALK.obs <- prop.table(raw,margin=1) )
+
+mlr <- multinom(age~lcat,data=agelength,maxit=500)
+
+minx <- min(agelength$len)
+maxx <- max(agelength$len)
+
+lens <- seq(10, 40,5) # plotting intervals
+ALK.sm <- predict(mlr,data.frame(lcat=lens),type="probs")
+row.names(ALK.sm) <- lens
+round(ALK.sm,3)
+
+alkPlot(ALK.obs,xlab="Total Length (cm)") 
+alkPlot(ALK.sm,xlab="Total Length (cm)") 
+
+alkPlot(ALK.sm,xlab="Total Length (cm)",pal="gray",showLegend=TRUE)
+alkPlot(ALK.sm,xlab="Total Length (cm)",pal="gray",showLegend=TRUE,type="area")
+
+alkPlot(ALK.sm,xlab="Total Length (cm)",pal="gray",type="lines")
+age_plot_2 <- alkPlot(ALK.sm, xlab="Total Length (cm)", ylab = "Age (years)",type="bubble", main="Black Sea Bass Length at Age", cex.main=2, cex.xlab=3, cex.ylab=3)
+dev.copy(png,'Age_plot2.png', width=2000, height=1600, res=200) ; dev.off()
+
+### Age-length Key application
+
+agelength.mod <- alkIndivAge(ALK.obs,age~len,data=agelength)
+headtail(agelength.mod)
+
+agelength.comb <- rbind(agelength,agelength.mod)
+str(agelength.comb)
+
+agefreq <- xtabs(~age,data=agelength.comb)
+prop.table(agefreq)
+
+hist(~age,data=agelength.comb,breaks=0:6,xlab="Age (yrs)")
+
+( sp.sum <- Summarize(len~age,data=agelength.comb,digits=2) )
+plot(len~age,data=agelength.comb,ylab="Total Length (mm)",xlab="Age (yrs)",pch=16,col=rgb(0,0,0,0.1))
+lines(mean~age,data=sp.sum,col="blue",lwd=2)
