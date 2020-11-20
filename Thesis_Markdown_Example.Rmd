@@ -244,6 +244,87 @@ lines(mean~age,data=sp.sum,col="blue",lwd=2)
 
 ```
 
+This will show the PSIRI composition for the samples that I caught.
+These are not separated by site - natural and artificial sites are grouped here.
+```{r PSIRI Plots, include=TRUE, echo=FALSE}
+###############
+#####PSIRI PLOTS######
+############
+
+###PSIRI Plot ---for general prey composition
+##Use diet_test here b/c only looks at my data
+
+table(diet_test$gencat)
+
+with (diet_test, table (othergencat))
+ps.a <- select(diet_test, othergencat, pyamtw)
+aggregate(ps.a[, 2], list(ps.a$othergencat), sum)
+
+
+labels <- c("Annelli","Arthro","Fish","Mollus")
+##Actual number 
+N <- c(25, 125,24,59)
+##Actual weight
+W <- c(12.46,282,38.33,95.34)
+##Next lines are percent number and percent weight - divided by 233 sotmachs total
+N <- c(10.7, 53.6,10.3,25.3)
+##Next line is percent weight where total weight =428.13
+W <- c(2.9,65.9, 8.9,22.2)
+## n=233 and FO=ni/n
+FO <- c(0.107,.537,.103,0.253)
+
+#This generates the plot using the barplot function twice in R
+barplot(height=N,
+        width=FO,
+        ylim=c(-100,100),
+        space=0,
+        yaxt="n"
+)
+
+barplot(height=-1*W,
+        width=FO,
+        space=0,
+        yaxt="n",
+        add=TRUE)
+
+#Generate Y-axis with the axis function and label with the mtext function 
+axis(side=2,
+     at=seq(from=-100,to=100,by=25),
+     labels=c(seq(100,0,-25),seq(25,100,25))
+)
+
+mtext(c("%PN","%PW"),
+      side=2,
+      line=2,
+      at=c(50,-50)
+)
+
+#Generate FO scale bar -- this will not always be the same size from plot to plot unless you set the size of each barplot equal with par!!!
+center <- 0.5*sum(FO) #This is the center of the X-axis
+
+axis(side=1,
+     at=c(center-25,center,center+25),
+     labels=c(0,25,50)
+)
+
+mtext("%FO",
+      side=1,
+      line=2,
+      at=center)
+
+#Label the bars
+#This positions the labels over the middle of each bar
+#This may get ugly if there are many bars and labels!!!
+text(cumsum(FO) - 0.5*FO,N+5,srt= 90,adj=0,labels) 
+
+temp <- locator(1) # On the chart, click where you would like the text to appear
+text(temp,"General",srt= 90, font=2)
+
+dev.copy(png,'PSIRI_General.png', width=2000, height=1600, res=200) ; dev.off()
+
+
+```
+
 
 This will show a map of where samples were caught.  Samples were caught off the coast of MD, USA at natural and artifical sites.
 ```{r figure1, include=TRUE, ECHO=FALSE, WARNING=FALSE}
