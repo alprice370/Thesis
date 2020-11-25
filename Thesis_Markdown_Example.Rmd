@@ -326,6 +326,111 @@ dev.copy(png,'PSIRI_General.png', width=2000, height=1600, res=200) ; dev.off()
 ```
 
 
+```{r stable_isotope_wrangling, include=TRUE, echo=FALSE }
+#########
+######Stable Isotopes######
+###########
+
+##Define Consumer level
+isotope.original$consumer_level<- ifelse(isotope.original$consumer=="BSB","2","1")
+
+##Define Location Type
+isotope.original$location_type<- ifelse(isotope.original$location=="NB_ONE", "N",
+                                        ifelse(isotope.original$location=="NB_TWO","N","A"))
+
+pred <- isotope.original[1:407,]
+prey <-isotope.original[408:440,]
+prey$c13m <-paste(prey$c13l)
+prey$c13s <-paste(prey$c13l)
+prey$n15m <-paste(prey$n15l)
+prey$n15s <-paste(prey$n15l)
+
+isotope <- rbind(pred, prey)
+colnames(isotope)
+
+#### Removes incomplete entries so means aren't affected
+isotope$isoname <- ifelse(isotope$consumer=="BSB","", paste(isotope$consumer))
+colnames(isotope)
+
+##Adds sizecat
+isotope$sizecat[isotope$len<=25] <- "S"
+isotope$sizecat[isotope$len>25] <- "M"
+isotope$sizecat[isotope$len>50] <- "L"
+
+isotope$isoname[isotope$isoname == "Slug"] <- "Nudibranch"
+
+isotope$c13m <- as.numeric(isotope$c13m)
+isotope$n15m <- as.numeric(isotope$n15m)
+isotope$c13m <-  as.numeric(isotope$c13m)
+isotope$c13s <- as.numeric(isotope$c13s)
+isotope$n15s <-  as.numeric(isotope$n15s)
+
+
+######Correcting livers for lipids
+colnames(isotope)
+lip_correct <- select(isotope, 1:19)
+colnames(lip_correct)
+
+
+lip_correct$isoratio_l <-(isotope$c13l)/(isotope$n15l)  ## Will give C:N ratio for liver when raw values added
+
+##Find means by tissue type
+##Will need to make data wide
+
+tissue.summary<- summarySE(lip_correct, measurevar="isoratio_l", groupvars=c("sizecat", "location_type"), na.rm=TRUE)
+
+
+###For Data Visuals###
+bsb <- isotope[isotope$consumer_level=="2",]
+bsb$losiz <- paste(bsb$location_type,"|",bsb$sizecat)
+
+bsb$c13m <- as.numeric(bsb$c13m)
+bsb$n15m <- as.numeric(bsb$n15m)
+bsb$c13l <-  as.numeric(bsb$c13l)
+bsb$n15l <-  as.numeric(bsb$n15l)
+bsb$c13s <- as.numeric(bsb$c13s)
+bsb$n15s <-  as.numeric(bsb$n15s)
+
+```
+```{r ellipses}
+
+
+elipse1 <- ggplot(bsb, aes(c13l, n15l, color=losiz))+labs(color="Location | Size")+
+  labs(x=(expression("∂"^13*"C (‰)")),y=(expression("∂"^15*"N (‰)")))+
+  geom_point() +stat_ellipse()+
+  ggtitle("∂ Values by Site Type, Fish Size, and Tissue Type", subtitle = "Liver")+
+  theme(plot.title = element_text(hjust = 0.5))+theme(axis.text=element_text(size=18),
+                                                      axis.title=element_text(size=18,face="bold"))+
+  theme(legend.text=element_text(size=14))+theme(legend.title=element_text(size=18))+
+  theme(plot.subtitle=element_text(size=18))#+ theme(legend.position = "none") 
+
+
+elipse2 <- ggplot(bsb, aes(c13m, n15m, color=losiz))+labs(color="Location | Size")+
+  labs(x=(expression("∂"^13*"C (‰)")),y=(expression("∂"^15*"N (‰)")))+
+  geom_point() +stat_ellipse()+
+  ggtitle("", subtitle = "Muscle")+
+  theme(plot.title = element_text(hjust = 0.5))+theme(axis.text=element_text(size=18),
+                                                      axis.title=element_text(size=18,face="bold"))+
+  theme(legend.text=element_text(size=14))+theme(legend.title=element_text(size=18))+
+  theme(plot.subtitle=element_text(size=18))+theme(legend.position = "none") 
+
+elipse3 <- ggplot(bsb, aes(c13s, n15s, color=losiz))+labs(color="Location | Size")+
+  labs(x=(expression("∂"^13*"C (‰)")),y=(expression("∂"^15*"N (‰)")))+
+  geom_point() +stat_ellipse()+
+  ggtitle("", subtitle = "Mucus")+
+  theme(plot.title = element_text(hjust = 0.5))+theme(axis.text=element_text(size=18),
+                                                      axis.title=element_text(size=18,face="bold"))+
+  theme(legend.text=element_text(size=14))+theme(legend.title=element_text(size=18))+
+  theme(plot.subtitle=element_text(size=18))
+
+isotopet <- grid.arrange(elipse1 , elipse2, elipse3, nrow=)
+#install.packages("ggpubr")
+library(ggpubr)
+ggarrange(elipse2, elipse1, elipse3,ncol=1, nrow=3,
+          common.legend = TRUE, legend = "right")
+```
+
+
 This will show a map of where samples were caught.  Samples were caught off the coast of MD, USA at natural and artifical sites.
 ```{r figure1, include=TRUE, ECHO=FALSE, WARNING=FALSE}
 setwd("~/Desktop/MasterR")
